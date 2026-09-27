@@ -119,13 +119,18 @@ static void monta_resposta(
     for (int i = 0; i < WORD_LEN; i++) {
 
         if (feedback[i] == FB_CORRETA) {
-            strcat(resposta, "C ");
+            char temp[2];
+            temp[0] = palpite[i];
+            temp[1] = '\0';
+
+            strcat(resposta, temp);
+            strcat(resposta, " ");
         }
         else if (feedback[i] == FB_EXISTE) {
-            strcat(resposta, "E ");
+            strcat(resposta, "* ");
         }
         else {
-            strcat(resposta, "A ");
+            strcat(resposta, "_ ");
         }
     }
 
