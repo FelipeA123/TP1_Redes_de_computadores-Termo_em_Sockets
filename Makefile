@@ -1,14 +1,14 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -g
 
-TARGETS = tcp_servidor tcp_cliente \
+TARGETS = server client \
 
 all: $(TARGETS)
 
-tcp_servidor: tcp_servidor.c
+server: tcp_servidor.c
 	$(CC) $(CFLAGS) -o $@ $<
 
-tcp_cliente: tcp_cliente.c
+client: tcp_cliente.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
