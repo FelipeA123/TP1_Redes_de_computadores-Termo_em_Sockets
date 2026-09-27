@@ -39,6 +39,8 @@ int main(int argc, char *argv[]){
         variavelbunda = AF_INET6;
     }
 
+    printf(" %d", variavelbunda);
+
     int server_fd = socket(variavelbunda, SOCK_STREAM, 0);
     if (server_fd < 0) {
         perror("socket");
