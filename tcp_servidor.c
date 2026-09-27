@@ -135,7 +135,7 @@ static void monta_resposta(
     }
 
     strcat(resposta,
-           "\nC = correta | E = existe em outra posicao | A = ausente\n");
+           "\nLetra = correta | * = existe em outra posicao | _ = ausente\n");
 }
 
 
