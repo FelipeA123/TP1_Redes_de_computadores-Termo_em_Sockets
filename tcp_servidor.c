@@ -6,6 +6,7 @@
  *
  * Uso: ./tcp_servidor
  */
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -14,25 +15,25 @@
 
 int PORT = 0;
 char *palavra = "";
-char *variavelbunda = "";
+int variavelbunda = 0;
 #define BUF_SIZE 256
 
 int main(int argc, char *argv[]){
-    if (argc != 3) {
+    if (argc != 4) {
         return 1;
     }
 
-    if (strcmp(argv[0], "v4") != 0 || strcmp(argv[0], "v6") != 0) {
+    if (strcmp(argv[1], "v4") != 0 || strcmp(argv[1], "v6") != 0) {
         printf("Protocolo inválido. Use: v4 ou v6\n");
         return 1;
     }
-    if (strlen(argv[1]) != 5 || strlen(argv[2]) != 5 ) {
+    if (strlen(argv[2]) != 5 || strlen(argv[3]) != 5 ) {
         return 1;
     }
-    PORT = atoi(argv[1]);
-    palavra = atoi(argv[2]);
+    PORT = atoi(argv[2]);
+    palavra = argv[3];
 
-    if(strcmp(argv[0], "v4") == 0) {
+    if(strcmp(argv[1], "v4") == 0) {
         variavelbunda = AF_INET;
     } else {
         variavelbunda = AF_INET6;
