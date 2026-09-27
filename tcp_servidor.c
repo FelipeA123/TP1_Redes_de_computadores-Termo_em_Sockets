@@ -14,6 +14,7 @@
 
 int PORT = 0;
 char *palavra = "";
+char *variavelbunda = "";
 #define BUF_SIZE 256
 
 int main(int argc, char *argv[]){
