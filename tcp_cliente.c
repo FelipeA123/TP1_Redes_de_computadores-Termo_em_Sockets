@@ -27,314 +27,80 @@ typedef struct {
     char message[MSG_SIZE];
 } GameMessage;
 
-
 int main(void)
 {
-    int sockfd = socket(
-        AF_INET6,
-        SOCK_STREAM,
-        0
-    );
-
+    int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("socket");
         return 1;
     }
 
-
-    struct sockaddr_in6 addr;
-
-    memset(
-        &addr,
-        0,
-        sizeof(addr)
-    );
-
+    struct sockaddr_in6 addr = {0};
     addr.sin6_family = AF_INET6;
     addr.sin6_port = htons(PORT);
+    inet_pton(AF_INET6, "::1", &addr.sin6_addr);
 
-    inet_pton(
-        AF_INET6,
-        "::1",
-        &addr.sin6_addr
-    );
-
-
-    if (connect(
-        sockfd,
-        (struct sockaddr *)&addr,
-        sizeof(addr)) < 0) {
-
+    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("connect");
-
         close(sockfd);
-
         return 1;
     }
-
 
     printf("[TCP] Conectado ao servidor!\n");
 
-
-    /*
-     * =====================================================
-     * Recebe MSG_START
-     * =====================================================
-     */
-
     GameMessage msg;
 
-    memset(
-        &msg,
-        0,
-        sizeof(msg)
-    );
-
-    ssize_t n = recv(
-        sockfd,
-        &msg,
-        sizeof(msg),
-        0
-    );
-
-    if (n <= 0) {
-
-        printf("Servidor desconectou.\n");
-
+    if (recv(sockfd, &msg, sizeof(msg), 0) <= 0 || msg.type != MSG_START) {
+        printf("Falha ao iniciar o jogo.\n");
         close(sockfd);
-
         return 1;
     }
 
+    printf("%s\n", msg.message);
 
-    if (msg.type != MSG_START) {
-
-        printf(
-            "[TCP] Mensagem inicial invalida.\n"
-        );
-
-        close(sockfd);
-
-        return 1;
-    }
-
-
-    printf(
-        "[TCP] %s\n",
-        msg.message
-    );
-
-
-    /*
-     * =====================================================
-     * JOGO
-     * =====================================================
-     */
-
-    for (int tentativa = 1;
-         tentativa <= 6;
-         tentativa++) {
+    for (int tentativa = 1; tentativa <= 6; tentativa++) {
 
         char palpite[WORD_LEN + 1];
 
+        printf("Tentativa %d/6 - digite seu palpite: ", tentativa);
+        fgets(palpite, sizeof(palpite), stdin);
+        palpite[strcspn(palpite, "\n")] = '\0';
 
-        printf(
-            "Tentativa %d/6 - digite seu palpite: ",
-            tentativa
-        );
+        for (int i = 0; i < WORD_LEN; i++)
+            palpite[i] = toupper((unsigned char)palpite[i]);
 
-
-        if (fgets(
-            palpite,
-            sizeof(palpite),
-            stdin) == NULL) {
-
-            break;
-        }
-
-
-        palpite[strcspn(
-            palpite,
-            "\n"
-        )] = '\0';
-
-
-        /*
-         * Converte para maiúsculas
-         */
-
-        for (int i = 0; i < WORD_LEN; i++) {
-
-            palpite[i] = (char)toupper(
-                (unsigned char)palpite[i]
-            );
-        }
-
-
-        /*
-         * Monta MSG_GUESS
-         */
-
-        memset(
-            &msg,
-            0,
-            sizeof(msg)
-        );
-
+        memset(&msg, 0, sizeof(msg));
         msg.type = MSG_GUESS;
 
-
-        /*
-         * Coloca cada letra no vetor guess
-         */
-
-        for (int i = 0; i < WORD_LEN; i++) {
-
+        for (int i = 0; i < WORD_LEN; i++)
             msg.guess[i] = palpite[i];
-        }
 
+        send(sockfd, &msg, sizeof(msg), 0);
 
-        /*
-         * Envia a estrutura completa
-         */
-
-        if (send(
-            sockfd,
-            &msg,
-            sizeof(msg),
-            0) < 0) {
-
-            perror("send");
-
+        if (recv(sockfd, &msg, sizeof(msg), 0) <= 0) {
+            printf("Servidor desconectou.\n");
             break;
         }
-
-
-        /*
-         * =================================================
-         * Recebe resposta do servidor
-         * =================================================
-         */
-
-        memset(
-            &msg,
-            0,
-            sizeof(msg)
-        );
-
-
-        n = recv(
-            sockfd,
-            &msg,
-            sizeof(msg),
-            0
-        );
-
-
-        if (n <= 0) {
-
-            printf(
-                "Servidor desconectou.\n"
-            );
-
-            break;
-        }
-
-
-        /*
-         * MSG_FEEDBACK
-         */
 
         if (msg.type == MSG_FEEDBACK) {
 
-            printf(
-                "[TCP] Feedback: "
-            );
+            printf("[TCP] Feedback: ");
+            for (int i = 0; i < WORD_LEN; i++)
+                printf("%d ", msg.feedback[i]);
+            printf("\n%s\n", msg.message);
 
-            for (int i = 0; i < WORD_LEN; i++) {
+        } else if (msg.type == MSG_WIN || msg.type == MSG_EXIT) {
 
-                printf(
-                    "%d ",
-                    msg.feedback[i]
-                );
-            }
-
-            printf("\n");
-
-            printf(
-                "[TCP] %s\n",
-                msg.message
-            );
-        }
-
-
-        /*
-         * MSG_WIN
-         */
-
-        else if (msg.type == MSG_WIN) {
-
-            printf(
-                "[TCP] %s\n",
-                msg.message
-            );
-
+            printf("%s\n", msg.message);
             break;
-        }
 
+        } else if (msg.type == MSG_ERROR) {
 
-        /*
-         * MSG_ERROR
-         */
-
-        else if (msg.type == MSG_ERROR) {
-
-            printf(
-                "[TCP] Erro: %s\n",
-                msg.message
-            );
-
+            printf("Erro: %s\n", msg.message);
             tentativa--;
-
-            continue;
-        }
-
-
-        /*
-         * MSG_EXIT
-         */
-
-        else if (msg.type == MSG_EXIT) {
-
-            printf(
-                "[TCP] %s\n",
-                msg.message
-            );
-
-            break;
-        }
-
-
-        /*
-         * Tipo desconhecido
-         */
-
-        else {
-
-            printf(
-                "[TCP] Tipo de mensagem desconhecido.\n"
-            );
         }
     }
 
-
-    /*
-     * =====================================================
-     * Fecha conexão
-     * =====================================================
-     */
-
     close(sockfd);
-
     return 0;
 }
