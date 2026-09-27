@@ -27,9 +27,6 @@ int main(int argc, char *argv[]){
         printf("Protocolo inválido. Use: v4 ou v6\n");
         return 1;
     }
-    if (strlen(argv[2]) != 5 || strlen(argv[3]) != 5 ) {
-        return 1;
-    }
     PORT = atoi(argv[2]);
     palavra = argv[3];
 
@@ -51,11 +48,23 @@ int main(int argc, char *argv[]){
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    struct sockaddr_in addr;
+    struct sockaddr_storage addr;
     memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(PORT);
+    socklen_t addr_len = sizeof(addr);
+
+    if (variavelbunda == AF_INET) {
+        struct sockaddr_in *addr4 = (struct sockaddr_in *)&addr;
+
+        addr4->sin_family = AF_INET;
+        addr4->sin_addr.s_addr = INADDR_ANY;
+        addr4->sin_port = htons(PORT);
+    } else {
+        struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)&addr;
+
+        addr6->sin6_family = AF_INET6;
+        addr6->sin6_addr = in6addr_any;
+        addr6->sin6_port = htons(PORT);
+    }
 
     if (bind(server_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("bind");
