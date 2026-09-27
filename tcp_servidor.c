@@ -12,11 +12,32 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define PORT 8080
+int PORT = 0;
+char palavra = "";
 #define BUF_SIZE 256
 
-int main(void) {
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+int main(int argc, char *argv[]){
+    if (argc != 3) {
+        return 1;
+    }
+
+    if (strcmp(argv[0], "v4") != 0 || strcmp(argv[0], "v6") != 0) {
+        printf("Protocolo inválido. Use: v4 ou v6\n");
+        return 1;
+    }
+    if (strlen(argv[1]) != 5 || strlen(argv[2]) != 5 ) {
+        return 1;
+    }
+    PORT = argv[1];
+    palavra = argv[2];
+
+    if(strcmp(argv[0], "v4") == 0) {
+        variavelbunda = AF_INET;
+    } else {
+        variavelbunda = AF_INET6;
+    }
+
+    int server_fd = socket(variavelbunda, SOCK_STREAM, 0);
     if (server_fd < 0) {
         perror("socket");
         return 1;
@@ -44,7 +65,7 @@ int main(void) {
         return 1;
     }
 
-    printf("[TCP] Servidor escutando na porta %d...\n", PORT);
+    printf("Servidor iniciado em modo %d na porta %d\n", variavelbunda, PORT);
 
     int client_fd = accept(server_fd, NULL, NULL);
     if (client_fd < 0) {
