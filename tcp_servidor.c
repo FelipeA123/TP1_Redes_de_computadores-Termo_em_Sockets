@@ -36,17 +36,6 @@ int PORT = 0;
 char *palavra = "";
 int variavelbunda = 0;
 
-/* Remove \n e \r do final da string */
-static void remove_quebra_linha(char *s)
-{
-    int len = (int)strlen(s);
-
-    while (len > 0 &&
-           (s[len - 1] == '\n' || s[len - 1] == '\r')) {
-        s[--len] = '\0';
-    }
-}
-
 /* Converte a string para maiúsculas */
 static void para_maiusculas(char *s)
 {
