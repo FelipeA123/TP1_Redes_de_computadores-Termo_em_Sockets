@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    if (strcmp(argv[1], "v4") != 0 || strcmp(argv[1], "v6") != 0) {
+    if (strcmp(argv[1], "v4") != 0 && strcmp(argv[1], "v6") != 0) {
         printf("Protocolo inválido. Use: v4 ou v6\n");
         return 1;
     }
