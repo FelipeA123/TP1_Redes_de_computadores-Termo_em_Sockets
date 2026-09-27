@@ -13,7 +13,7 @@
 #include <sys/socket.h>
 
 int PORT = 0;
-char palavra = "";
+char *palavra = "";
 #define BUF_SIZE 256
 
 int main(int argc, char *argv[]){
@@ -28,8 +28,8 @@ int main(int argc, char *argv[]){
     if (strlen(argv[1]) != 5 || strlen(argv[2]) != 5 ) {
         return 1;
     }
-    PORT = argv[1];
-    palavra = argv[2];
+    PORT = atoi(argv[1]);
+    palavra = atoi(argv[2]);
 
     if(strcmp(argv[0], "v4") == 0) {
         variavelbunda = AF_INET;
