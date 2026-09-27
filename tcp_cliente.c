@@ -7,18 +7,34 @@
 #define PORT 8080
 #define BUF_SIZE 256
 
+typedef enum {
+    MSG_START,
+    MSG_GUESS,
+    MSG_FEEDBACK,
+    MSG_END
+} MsgType;
+
+typedef struct {
+    MsgType tipo;
+    char palavra[BUF_SIZE];
+} Mensagem;
+
 int main(void)
 {
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
     if (sockfd < 0) {
         perror("socket");
         return 1;
     }
 
     struct sockaddr_in addr;
+
     memset(&addr, 0, sizeof(addr));
+
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
+
     inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);
 
     if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
@@ -29,20 +45,26 @@ int main(void)
 
     printf("[TCP] Conectado ao servidor!\n");
 
-
     for (int tentativa = 1; tentativa <= 6; tentativa++) {
-        char msg[BUF_SIZE];
+
+        Mensagem mensagem;
+
+        memset(&mensagem, 0, sizeof(mensagem));
+
+        mensagem.tipo = MSG_GUESS;
+
         printf("Tentativa %d/6 - digite seu palpite: ", tentativa);
-        fgets(msg, sizeof(msg), stdin);
-        msg[strcspn(msg, "\n")] = '\0';
+
+        fgets(mensagem.palavra, sizeof(mensagem.palavra), stdin);
+
+        mensagem.palavra[strcspn(mensagem.palavra, "\n")] = '\0';
 
         send(
             sockfd,
-            msg,
-            strlen(msg),
+            &mensagem,
+            sizeof(mensagem),
             0
         );
-
 
         char buf[BUF_SIZE] = {0};
 
@@ -63,19 +85,12 @@ int main(void)
         printf("\n[TCP] Resposta do servidor:\n");
         printf("%s\n", buf);
 
-
-        /*
-         * Se o servidor mandar "Parabens"
-         * ou "Voce perdeu", podemos encerrar.
-         */
-
         if (strstr(buf, "Parabens") != NULL ||
             strstr(buf, "Voce perdeu") != NULL) {
 
             break;
         }
     }
-
 
     close(sockfd);
 
