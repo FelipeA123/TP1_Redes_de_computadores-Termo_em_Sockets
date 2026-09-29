@@ -31,6 +31,19 @@ typedef struct {
     char message[MSG_SIZE];
 } GameMessage;
 
+static int eh_palavra_valida(const char *s)
+{
+    if (strlen(s) != WORD_LEN)
+        return 0;
+
+    for (int i = 0; i < WORD_LEN; i++) {
+        if (!isalpha((unsigned char)s[i]))
+            return 0;
+    }
+
+    return 1;
+}
+
 int main(void)
 {
     int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -66,11 +79,18 @@ int main(void)
     printf("%s\n", msg.message);
 
     for (int tentativa = 1; tentativa <= 6; tentativa++) {
-        char palpite[WORD_LEN + 1];
+        char palpite[WORD_LEN + 2];
 
         printf("Tentativa %d/6 - digite seu palpite: ", tentativa);
+
         fgets(palpite, sizeof(palpite), stdin);
         palpite[strcspn(palpite, "\n")] = '\0';
+
+        if (!eh_palavra_valida(palpite)) {
+            printf("Erro: digite exatamente 5 letras de A a Z.\n");
+            tentativa--;
+            continue;
+        }
 
         for (int i = 0; i < WORD_LEN; i++)
             palpite[i] = toupper((unsigned char)palpite[i]);
