@@ -4,8 +4,9 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <ctype.h>
+#include <stdlib.h>
 
-#define PORT 8080
+
 #define WORD_LEN 5
 #define MSG_SIZE 128
 
@@ -44,8 +45,16 @@ static int eh_palavra_valida(const char *s)
     return 1;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    /* Verifica os argumentos */
+    if (argc != 3) {
+        printf("Uso: %s <endereco_ip> <porta>\n", argv[0]);
+        return 1;
+    }
+
+    const char *ip = argv[1];
+    int porta = atoi(argv[2]);
     int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
@@ -56,9 +65,13 @@ int main(void)
     struct sockaddr_in6 addr = {0};
 
     addr.sin6_family = AF_INET6;
-    addr.sin6_port = htons(PORT);
+    addr.sin6_port = htons(porta);
 
-    inet_pton(AF_INET6, "::1", &addr.sin6_addr);
+    if (inet_pton(AF_INET6, ip, &addr.sin6_addr) <= 0) {
+        printf("Endereco IPv6 invalido: %s\n", ip);
+        close(sockfd);
+        return 1;
+    }
 
     if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("connect");
