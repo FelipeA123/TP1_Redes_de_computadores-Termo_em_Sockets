@@ -9,6 +9,10 @@
 #define WORD_LEN 5
 #define MSG_SIZE 128
 
+#define FB_CORRETA 2
+#define FB_EXISTE 1
+#define FB_AUSENTE 0
+
 typedef enum {
     MSG_START,
     MSG_GUESS,
@@ -30,14 +34,17 @@ typedef struct {
 int main(void)
 {
     int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
+
     if (sockfd < 0) {
         perror("socket");
         return 1;
     }
 
     struct sockaddr_in6 addr = {0};
+
     addr.sin6_family = AF_INET6;
     addr.sin6_port = htons(PORT);
+
     inet_pton(AF_INET6, "::1", &addr.sin6_addr);
 
     if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
@@ -59,7 +66,6 @@ int main(void)
     printf("%s\n", msg.message);
 
     for (int tentativa = 1; tentativa <= 6; tentativa++) {
-
         char palpite[WORD_LEN + 1];
 
         printf("Tentativa %d/6 - digite seu palpite: ", tentativa);
@@ -83,19 +89,53 @@ int main(void)
         }
 
         if (msg.type == MSG_FEEDBACK) {
+            printf("[TCP] Palpite: ");
+
+            for (int i = 0; i < WORD_LEN; i++)
+                printf("%c", msg.guess[i]);
+
+            printf("\n");
 
             printf("[TCP] Feedback: ");
-            for (int i = 0; i < WORD_LEN; i++)
-                printf("%d ", msg.feedback[i]);
-            printf("\n%s\n", msg.message);
 
+            for (int i = 0; i < WORD_LEN; i++) {
+                if (msg.feedback[i] == FB_CORRETA) {
+                    printf("%c ", msg.guess[i]);
+                } else if (msg.feedback[i] == FB_EXISTE) {
+                    printf("* ");
+                } else {
+                    printf("_ ");
+                }
+            }
+
+            printf("\n");
+            printf("%s\n", msg.message);
         } else if (msg.type == MSG_WIN || msg.type == MSG_EXIT) {
+            if (msg.type == MSG_WIN) {
+                printf("[TCP] Palpite: ");
+
+                for (int i = 0; i < WORD_LEN; i++)
+                    printf("%c", msg.guess[i]);
+
+                printf("\n");
+
+                printf("[TCP] Feedback: ");
+
+                for (int i = 0; i < WORD_LEN; i++) {
+                    if (msg.feedback[i] == FB_CORRETA)
+                        printf("%c ", msg.guess[i]);
+                    else if (msg.feedback[i] == FB_EXISTE)
+                        printf("* ");
+                    else
+                        printf("_ ");
+                }
+
+                printf("\n");
+            }
 
             printf("%s\n", msg.message);
             break;
-
         } else if (msg.type == MSG_ERROR) {
-
             printf("Erro: %s\n", msg.message);
             tentativa--;
         }
