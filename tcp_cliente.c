@@ -84,6 +84,12 @@ int main(void)
         printf("Tentativa %d/6 - digite seu palpite: ", tentativa);
 
         fgets(palpite, sizeof(palpite), stdin);
+
+        if (strchr(palpite, '\n') == NULL) {
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF);
+        }
+
         palpite[strcspn(palpite, "\n")] = '\0';
 
         if (!eh_palavra_valida(palpite)) {
