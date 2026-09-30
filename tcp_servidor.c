@@ -186,11 +186,13 @@ int main(int argc, char *argv[])
     msg.type = MSG_START;
     msg.attempts = 0;
     msg.winstatus = 0;
+    strcpy(msg.message, "Jogo iniciado. Envie uma palavra de 5 letras.");
 
     send(client_fd, &msg, sizeof(msg), 0);
 
     int venceu = 0;
 
+    /* Cada repetição processa um palpite, até o limite de tentativas. */
     for (int tentativa = 1; tentativa <= MAX_ATTEMPTS; tentativa++) {
         memset(&msg, 0, sizeof(msg));
 
@@ -205,6 +207,7 @@ int main(int argc, char *argv[])
         if (msg.type != MSG_GUESS) {
             printf("Tipo de mensagem invalido.\n");
 
+            /* A mensagem inválida é respondida sem consumir uma tentativa. */
             memset(&msg, 0, sizeof(msg));
             msg.type = MSG_ERROR;
             msg.winstatus = -1;
@@ -224,6 +227,7 @@ int main(int argc, char *argv[])
         buf[WORD_LEN] = '\0';
         para_maiusculas(buf);
 
+        /* Palpites fora do formato esperado também não contam como tentativa. */
         if (!eh_palavra_valida(buf)) {
             memset(&msg, 0, sizeof(msg));
             msg.type = MSG_ERROR;
@@ -237,6 +241,7 @@ int main(int argc, char *argv[])
         }
 
         int feedback[WORD_LEN];
+    /* Compara o palpite com a palavra secreta e calcula as dicas. */
         calcula_feedback(palavra, buf, feedback);
 
         for (int i = 0; i < WORD_LEN; i++)
@@ -249,6 +254,7 @@ int main(int argc, char *argv[])
 
         int acertou_tudo = 1;
 
+    /* A vitória acontece somente se todas as posições estiverem corretas. */
         for (int i = 0; i < WORD_LEN; i++) {
             if (feedback[i] != FB_CORRETA) {
                 acertou_tudo = 0;
@@ -268,12 +274,14 @@ int main(int argc, char *argv[])
             strcpy(msg.message, "Feedback recebido.");
         }
 
+        /* Envia a vitória ou o feedback deste palpite ao cliente. */
         send(client_fd, &msg, sizeof(msg), 0);
 
         if (venceu)
             break;
     }
 
+    /* Informa ao cliente se venceu ou se esgotou as tentativas. */
     memset(&msg, 0, sizeof(msg));
     msg.type = MSG_EXIT;
     msg.attempts = venceu ? 0 : MAX_ATTEMPTS;
