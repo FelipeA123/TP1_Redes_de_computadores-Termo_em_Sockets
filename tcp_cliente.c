@@ -10,9 +10,9 @@
 #define WORD_LEN 5
 #define MSG_SIZE 128
 
-#define FB_CORRETA 2
-#define FB_EXISTE 1
-#define FB_AUSENTE 0
+#define FB_CORRETA 2  /* Letra correta na posição certa. */
+#define FB_EXISTE 1   /* Letra presente em outra posição. */
+#define FB_AUSENTE 0  /* Letra que não aparece na palavra. */
 
 typedef enum {
     MSG_START,
@@ -92,12 +92,14 @@ int main(int argc, char *argv[])
     printf("%s\n", msg.message);
 
     for (int tentativa = 1; tentativa <= 6; tentativa++) {
+        // +2 para ter espaço para as 5 letras, '\n' e '\0'.
         char palpite[WORD_LEN + 2];
 
         printf("Insira seu palpite:\n");
         printf("> ");
         fgets(palpite, sizeof(palpite), stdin);
 
+        /* Descarta o restante da entrada se o palpite exceder o buffer. */
         if (strchr(palpite, '\n') == NULL) {
             int c;
             while ((c = getchar()) != '\n' && c != EOF);
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
 
         if (!eh_palavra_valida(palpite)) {
             printf("Erro: Insira uma sequência de 5 caracteres de A a Z!\n");
-            tentativa--;
+            tentativa--; /* Entrada inválida não consome uma tentativa. */
             continue;
         }
 
@@ -128,39 +130,38 @@ int main(int argc, char *argv[])
         }
 
         if (msg.type == MSG_FEEDBACK) {
-
-            printf("Dica:");          
-
+            printf("Dica: ");
             for (int i = 0; i < WORD_LEN; i++) {
-                if (msg.feedback[i] == FB_CORRETA) {
-                    printf("%c ", msg.guess[i]);
-                } else if (msg.feedback[i] == FB_EXISTE) {
-                    printf("* ");
-                } else {
-                    printf("_ ");
-                }
-                \*Para excluir o espaço extra no final da linha.
-                if (i < WORD_LEN - 1)
+                /* Imprime o separador antes das letras, sem espaço final. */
+                if (i > 0)
                     printf(" ");
-            }
 
+                if (msg.feedback[i] == FB_CORRETA)
+                    printf("%c", msg.guess[i]);
+                else if (msg.feedback[i] == FB_EXISTE)
+                    printf("*");
+                else
+                    printf("_");
+            }
             printf("\n");
             printf("Tentativas realizadas: %d\n", tentativa);
-            
+
         } else if (msg.type == MSG_WIN || msg.type == MSG_EXIT) {
             if (msg.type == MSG_WIN) {
-
                 for (int i = 0; i < WORD_LEN; i++)
                     printf("%c", msg.guess[i]);
                 printf("\n");
 
                 for (int i = 0; i < WORD_LEN; i++) {
+                    if (i > 0)
+                        printf(" ");
+
                     if (msg.feedback[i] == FB_CORRETA)
-                        printf("%c ", msg.guess[i]);
+                        printf("%c", msg.guess[i]);
                     else if (msg.feedback[i] == FB_EXISTE)
-                        printf("* ");
+                        printf("*");
                     else
-                        printf("_ ");
+                        printf("_");
                 }
 
                 printf("\n");
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
             break;
         } else if (msg.type == MSG_ERROR) {
             printf("Erro: %s\n", msg.message);
-            tentativa--;
+            tentativa--; /* Erro informado pelo servidor não consome tentativa. */
         }
     }
 
