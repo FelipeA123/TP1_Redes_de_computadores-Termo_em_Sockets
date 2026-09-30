@@ -78,9 +78,6 @@ int main(int argc, char *argv[])
         close(sockfd);
         return 1;
     }
-
-    printf("Cliente Conectado\n");
-
     GameMessage msg;
 
     if (recv(sockfd, &msg, sizeof(msg), 0) <= 0 || msg.type != MSG_START) {
@@ -88,8 +85,6 @@ int main(int argc, char *argv[])
         close(sockfd);
         return 1;
     }
-
-    printf("%s\n", msg.message);
 
     for (int tentativa = 1; tentativa <= 6; tentativa++) {
         // +2 para ter espaço para as 5 letras, '\n' e '\0'.
@@ -147,26 +142,6 @@ int main(int argc, char *argv[])
             printf("Tentativas realizadas: %d\n", tentativa);
 
         } else if (msg.type == MSG_WIN || msg.type == MSG_EXIT) {
-            if (msg.type == MSG_WIN) {
-                for (int i = 0; i < WORD_LEN; i++)
-                    printf("%c", msg.guess[i]);
-                printf("\n");
-
-                for (int i = 0; i < WORD_LEN; i++) {
-                    if (i > 0)
-                        printf(" ");
-
-                    if (msg.feedback[i] == FB_CORRETA)
-                        printf("%c", msg.guess[i]);
-                    else if (msg.feedback[i] == FB_EXISTE)
-                        printf("*");
-                    else
-                        printf("_");
-                }
-
-                printf("\n");
-            }
-
             printf("%s\n", msg.message);
             break;
         } else if (msg.type == MSG_ERROR) {
