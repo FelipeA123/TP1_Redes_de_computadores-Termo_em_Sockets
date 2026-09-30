@@ -186,7 +186,6 @@ int main(int argc, char *argv[])
     msg.type = MSG_START;
     msg.attempts = 0;
     msg.winstatus = 0;
-    strcpy(msg.message, "Jogo iniciado. Envie uma palavra de 5 letras.");
 
     send(client_fd, &msg, sizeof(msg), 0);
 
