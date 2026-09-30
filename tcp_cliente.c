@@ -150,7 +150,6 @@ int main(int argc, char *argv[])
             printf("\n");
             printf("Tentativas realizadas: %d\n", tentativa);
             
-            printf("%s\n", msg.message);
         } else if (msg.type == MSG_WIN || msg.type == MSG_EXIT) {
             if (msg.type == MSG_WIN) {
 
