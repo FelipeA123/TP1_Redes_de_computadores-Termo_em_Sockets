@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         palpite[strcspn(palpite, "\n")] = '\0';
 
         if (!eh_palavra_valida(palpite)) {
-            printf("Insira uma sequência de 5 caracteres de A a Z!\n");
+            printf("Erro: Insira uma sequência de 5 caracteres de A a Z!\n");
             tentativa--;
             continue;
         }
