@@ -129,13 +129,7 @@ int main(int argc, char *argv[])
 
         if (msg.type == MSG_FEEDBACK) {
 
-            for (int i = 0; i < WORD_LEN; i++)
-                printf("%c", msg.guess[i]);
-
-            printf("\n");
-
-            printf("Dica:");
-            
+            printf("Dica:");          
 
             for (int i = 0; i < WORD_LEN; i++) {
                 if (msg.feedback[i] == FB_CORRETA) {
