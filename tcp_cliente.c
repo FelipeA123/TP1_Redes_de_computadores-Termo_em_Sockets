@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("[TCP] Conectado ao servidor!\n");
+    printf("Cliente Conectado\n");
 
     GameMessage msg;
 
@@ -94,8 +94,8 @@ int main(int argc, char *argv[])
     for (int tentativa = 1; tentativa <= 6; tentativa++) {
         char palpite[WORD_LEN + 2];
 
-        printf("Tentativa %d/6 - digite seu palpite: ", tentativa);
-
+        printf("Insira seu palpite:\n");
+        printf("> ");
         fgets(palpite, sizeof(palpite), stdin);
 
         if (strchr(palpite, '\n') == NULL) {
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
         palpite[strcspn(palpite, "\n")] = '\0';
 
         if (!eh_palavra_valida(palpite)) {
-            printf("Erro: digite exatamente 5 letras de A a Z.\n");
+            printf("Insira uma sequência de 5 caracteres de A a Z!\n");
             tentativa--;
             continue;
         }
@@ -128,14 +128,14 @@ int main(int argc, char *argv[])
         }
 
         if (msg.type == MSG_FEEDBACK) {
-            printf("[TCP] Palpite: ");
 
             for (int i = 0; i < WORD_LEN; i++)
                 printf("%c", msg.guess[i]);
 
             printf("\n");
 
-            printf("[TCP] Feedback: ");
+            printf("Dica:");
+            
 
             for (int i = 0; i < WORD_LEN; i++) {
                 if (msg.feedback[i] == FB_CORRETA) {
@@ -148,17 +148,15 @@ int main(int argc, char *argv[])
             }
 
             printf("\n");
+            printf("Tentativas realizadas: %d\n", tentativa);
+            
             printf("%s\n", msg.message);
         } else if (msg.type == MSG_WIN || msg.type == MSG_EXIT) {
             if (msg.type == MSG_WIN) {
-                printf("[TCP] Palpite: ");
 
                 for (int i = 0; i < WORD_LEN; i++)
                     printf("%c", msg.guess[i]);
-
                 printf("\n");
-
-                printf("[TCP] Feedback: ");
 
                 for (int i = 0; i < WORD_LEN; i++) {
                     if (msg.feedback[i] == FB_CORRETA)
