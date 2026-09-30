@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
             msg.type = MSG_WIN;
             msg.winstatus = 1;
             strcpy(msg.message, "Parabéns! Você venceu!");
-            printf("Cliente Desconectado");
+            printf("Cliente Desconectado\n");
             venceu = 1;
         } else {
             msg.type = MSG_FEEDBACK;
