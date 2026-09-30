@@ -63,9 +63,11 @@ static void calcula_feedback(const char *secreta, const char *palpite, int *feed
 {
     int contagem[26] = {0};
 
+    /* Conta as letras da palavra para tratar corretamente letras repetidas. */
     for (int i = 0; i < WORD_LEN; i++)
         contagem[secreta[i] - 'A']++;
 
+    /* Marca primeiro as letras que estão na posição correta. */
     for (int i = 0; i < WORD_LEN; i++) {
         if (palpite[i] == secreta[i]) {
             feedback[i] = FB_CORRETA;
@@ -75,6 +77,7 @@ static void calcula_feedback(const char *secreta, const char *palpite, int *feed
         }
     }
 
+    /* Usa as letras restantes para identificar as que estão em outra posição. */
     for (int i = 0; i < WORD_LEN; i++) {
         if (feedback[i] == FB_CORRETA)
             continue;
@@ -92,6 +95,7 @@ static void calcula_feedback(const char *secreta, const char *palpite, int *feed
 
 int main(int argc, char *argv[])
 {
+    /* argv[0]: programa; argv[1]: protocolo; argv[2]: porta; argv[3]: palavra secreta. */
     if (argc != 4) {
         printf("Uso: %s <v4|v6> <porta> <palavra>\n", argv[0]);
         return 1;
@@ -132,6 +136,7 @@ int main(int argc, char *argv[])
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
+    /* Estrutura genérica que comporta endereços IPv4 e IPv6. */
     struct sockaddr_storage addr;
     memset(&addr, 0, sizeof(addr));
     socklen_t addr_len = sizeof(addr);
@@ -162,7 +167,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("Servidor iniciado em modo IP%s na porta %d\n", argv[1], PORT);
+    printf("Servidor iniciado em modo IP%s na porta %d.\n", argv[1], PORT);
 
     int client_fd = accept(server_fd, NULL, NULL);
 
@@ -172,11 +177,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("Cliente Conectado.\n");
+    printf("Cliente Conectado\n");
 
     GameMessage msg;
     memset(&msg, 0, sizeof(msg));
 
+    /* Envia ao cliente a mensagem inicial antes de receber palpites. */
     msg.type = MSG_START;
     msg.attempts = 0;
     msg.winstatus = 0;
@@ -189,10 +195,11 @@ int main(int argc, char *argv[])
     for (int tentativa = 1; tentativa <= MAX_ATTEMPTS; tentativa++) {
         memset(&msg, 0, sizeof(msg));
 
+        /* Aguarda a mensagem do cliente; recv <= 0 indica desconexão ou erro. */
         ssize_t n = recv(client_fd, &msg, sizeof(msg), 0);
 
         if (n <= 0) {
-            printf("Cliente Desconectado.\n");
+            printf("Cliente Desconectado\n");
             break;
         }
 
@@ -209,6 +216,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
+        /* Converte os caracteres recebidos em uma string terminada em '\0'. */
         char buf[WORD_LEN + 1];
 
         for (int i = 0; i < WORD_LEN; i++)
@@ -273,9 +281,9 @@ int main(int argc, char *argv[])
     msg.winstatus = venceu ? 1 : 0;
 
     if (venceu) {
-        strcpy(msg.message, "Conexão encerrada.");
+        strcpy(msg.message, "Conexao encerrada.");
     } else {
-        snprintf(msg.message, MSG_SIZE, "Você perdeu. A palavra era: %s", palavra);
+        snprintf(msg.message, MSG_SIZE, "Voce perdeu. A palavra era: %s", palavra);
     }
 
     send(client_fd, &msg, sizeof(msg), 0);
