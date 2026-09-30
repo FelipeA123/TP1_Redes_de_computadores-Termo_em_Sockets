@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <netdb.h>
 
 
 #define WORD_LEN 5
@@ -55,27 +56,40 @@ int main(int argc, char *argv[])
 
     const char *ip = argv[1];
     int porta = atoi(argv[2]);
-    int sockfd = socket(AF_INET6, SOCK_STREAM, 0);
+
+    struct addrinfo hints, *res, *p;
+    int sockfd = -1;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;      // IPv4 ou IPv6
+    hints.ai_socktype = SOCK_STREAM;
+
+    char porta_str[10];
+    sprintf(porta_str, "%d", porta);
+
+    if (getaddrinfo(ip, porta_str, &hints, &res) != 0) {
+        printf("Endereco IP invalido: %s\n", ip);
+        return 1;
+    }
+
+    for (p = res; p != NULL; p = p->ai_next) {
+
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+
+        if (sockfd < 0)
+            continue;
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == 0)
+            break;
+
+        close(sockfd);
+        sockfd = -1;
+    }
+
+    freeaddrinfo(res);
 
     if (sockfd < 0) {
-        perror("socket");
-        return 1;
-    }
-
-    struct sockaddr_in6 addr = {0};
-
-    addr.sin6_family = AF_INET6;
-    addr.sin6_port = htons(porta);
-
-    if (inet_pton(AF_INET6, ip, &addr.sin6_addr) <= 0) {
-        printf("Endereco IPv6 invalido: %s\n", ip);
-        close(sockfd);
-        return 1;
-    }
-
-    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         perror("connect");
-        close(sockfd);
         return 1;
     }
     GameMessage msg;
