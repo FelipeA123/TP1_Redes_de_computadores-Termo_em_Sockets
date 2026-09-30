@@ -139,6 +139,9 @@ int main(int argc, char *argv[])
                 } else {
                     printf("_ ");
                 }
+                \*Para excluir o espaço extra no final da linha.
+                if (i < WORD_LEN - 1)
+                    printf(" ");
             }
 
             printf("\n");
