@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200112L
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -6,7 +8,6 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <netdb.h>
-#define _POSIX_C_SOURCE 200112L
 
 
 #define WORD_LEN 5
