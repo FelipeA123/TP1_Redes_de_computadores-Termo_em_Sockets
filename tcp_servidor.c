@@ -36,16 +36,7 @@ typedef struct {
 
 int PORT = 0;
 char *palavra = "";
-int variavelbunda = 0;
-
-static void remove_quebra_linha(char *s)
-{
-    int len = (int)strlen(s);
-
-    while (len > 0 && (s[len - 1] == '\n' || s[len - 1] == '\r')) {
-        s[--len] = '\0';
-    }
-}
+int protocolo = 0;
 
 static void para_maiusculas(char *s)
 {
@@ -127,13 +118,11 @@ int main(int argc, char *argv[])
     }
 
     if (strcmp(argv[1], "v4") == 0)
-        variavelbunda = AF_INET;
+        protocolo = AF_INET;
     else
-        variavelbunda = AF_INET6;
+        protocolo = AF_INET6;
 
-    printf("Familia do socket: %d\n", variavelbunda);
-
-    int server_fd = socket(variavelbunda, SOCK_STREAM, 0);
+    int server_fd = socket(protocolo, SOCK_STREAM, 0);
 
     if (server_fd < 0) {
         perror("socket");
@@ -147,7 +136,7 @@ int main(int argc, char *argv[])
     memset(&addr, 0, sizeof(addr));
     socklen_t addr_len = sizeof(addr);
 
-    if (variavelbunda == AF_INET) {
+    if (protocolo == AF_INET) {
         struct sockaddr_in *addr4 = (struct sockaddr_in *)&addr;
 
         addr4->sin_family = AF_INET;
@@ -173,8 +162,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("Servidor iniciado em modo %s na porta %d\n", argv[1], PORT);
-    printf("Palavra secreta: %s\n", palavra);
+    printf("Servidor iniciado em modo IP%s na porta %d\n", argv[1], PORT);
 
     int client_fd = accept(server_fd, NULL, NULL);
 
@@ -184,7 +172,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("[TCP] Cliente conectado.\n");
+    printf("Cliente Conectado.\n");
 
     GameMessage msg;
     memset(&msg, 0, sizeof(msg));
@@ -204,12 +192,12 @@ int main(int argc, char *argv[])
         ssize_t n = recv(client_fd, &msg, sizeof(msg), 0);
 
         if (n <= 0) {
-            printf("[TCP] Cliente desconectado.\n");
+            printf("Cliente Desconectado.\n");
             break;
         }
 
         if (msg.type != MSG_GUESS) {
-            printf("[TCP] Tipo de mensagem invalido.\n");
+            printf("Tipo de mensagem invalido.\n");
 
             memset(&msg, 0, sizeof(msg));
             msg.type = MSG_ERROR;
@@ -228,8 +216,6 @@ int main(int argc, char *argv[])
 
         buf[WORD_LEN] = '\0';
         para_maiusculas(buf);
-
-        printf("[TCP] Tentativa %d/%d: %s\n", tentativa, MAX_ATTEMPTS, buf);
 
         if (!eh_palavra_valida(buf)) {
             memset(&msg, 0, sizeof(msg));
@@ -266,7 +252,8 @@ int main(int argc, char *argv[])
         if (acertou_tudo) {
             msg.type = MSG_WIN;
             msg.winstatus = 1;
-            strcpy(msg.message, "Parabens! Voce venceu!");
+            strcpy(msg.message, "Parabéns! Você venceu!");
+            printf("Cliente Desconectado");
             venceu = 1;
         } else {
             msg.type = MSG_FEEDBACK;
@@ -286,9 +273,9 @@ int main(int argc, char *argv[])
     msg.winstatus = venceu ? 1 : 0;
 
     if (venceu) {
-        strcpy(msg.message, "Conexao encerrada.");
+        strcpy(msg.message, "Conexão encerrada.");
     } else {
-        snprintf(msg.message, MSG_SIZE, "Voce perdeu. A palavra era: %s", palavra);
+        snprintf(msg.message, MSG_SIZE, "Você perdeu. A palavra era: %s", palavra);
     }
 
     send(client_fd, &msg, sizeof(msg), 0);
