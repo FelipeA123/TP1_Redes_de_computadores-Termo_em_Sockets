@@ -56,24 +56,29 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    /* argv[1] fornece o endereço; argv[2] fornece a porta como texto. */
     const char *ip = argv[1];
     int porta = atoi(argv[2]);
 
     struct addrinfo hints, *res, *p;
-    int sockfd = -1;
+    int sockfd = -1; // -1 indica que ainda não foi criado um socket válido.
 
+    /* Configura a busca para aceitar IPv4 ou IPv6 e usar TCP. */
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;      // IPv4 ou IPv6
     hints.ai_socktype = SOCK_STREAM;
 
+    /* getaddrinfo recebe a porta em formato de texto. */
     char porta_str[10];
     sprintf(porta_str, "%d", porta);
 
+    /* Obtém os endereços compatíveis; a lista será tentada logo abaixo. */
     if (getaddrinfo(ip, porta_str, &hints, &res) != 0) {
         printf("Endereco IP invalido: %s\n", ip);
         return 1;
     }
 
+    /* Tenta conectar usando cada endereço retornado, IPv4 ou IPv6. */
     for (p = res; p != NULL; p = p->ai_next) {
 
         sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
@@ -84,12 +89,15 @@ int main(int argc, char *argv[])
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == 0)
             break;
 
+        /* Fecha o socket desta tentativa antes de testar o próximo endereço. */
         close(sockfd);
         sockfd = -1;
     }
 
+    /* Libera a lista criada por getaddrinfo após terminar as tentativas. */
     freeaddrinfo(res);
 
+    /* Se nenhum endereço conectou, sockfd continua com valor -1. */
     if (sockfd < 0) {
         perror("connect");
         return 1;
